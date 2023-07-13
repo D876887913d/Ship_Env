@@ -1,16 +1,20 @@
+import math
+
 class AgentState:  # state of agents (including communication and internal/mental state)
     def __init__(self):
         super().__init__()
         # xy坐标值/速度
+        # self.p_pos=(x,y) list
         self.p_pos=None
-        self.p_vel=None
-
+        self.p_vel=0
+        # 检测范围,由于会受到指定的红A2影响，设为状态
+        self.s_scope=0
 
 class Action:  # action of the agent
     def __init__(self):
         # 角度/加速度        
-        self.agle=None
-        self.aclr=None
+        self.agle=0
+        self.aclr=0
 
 '''
 :breif 这个函数对应的是智能体的基本属性，例如坐标、速度、方向等，用于之后进行进一步的环境构建的时候进行配置各智能体。
@@ -29,6 +33,11 @@ class Agent:
         # action
         self.action=Action()
     
+    def update(self):
+        self.state.p_vel+=self.action.aclr
+        self.state.p_pos[0]+=self.state.p_vel*math.cos(math.radians(self.action.agle))
+        self.state.p_pos[1]+=self.state.p_vel*math.sin(math.radians(self.action.agle))
+
     # env step总体思路
     # 以下代码全都不需要看。
     # from math import sqrt,sin,cos
@@ -54,4 +63,26 @@ class Agent:
     # def get_dist_with_other(self,other):
     #     return sqrt((self.x-other.x)**2+(self.x-other.x)**2)
     
-    
+class BB1_Agent(Agent):
+    def __init__(self):
+        super().__init__()
+        self.color=(117, 162, 228)
+        self.state.s_scope=25
+
+class RA1_Agent(Agent):
+    def __init__(self):
+        super().__init__()
+        self.color=(255, 184, 184)
+        self.state.s_scope=112.5
+
+class RA2_Agent(Agent):
+    def __init__(self):
+        super().__init__()
+        self.color=(247, 189, 198)
+        self.state.s_scope=50
+
+class RA3_Agent(Agent):
+    def __init__(self):
+        super().__init__()
+        self.color=(250, 210, 200)
+        self.state.s_scope=50

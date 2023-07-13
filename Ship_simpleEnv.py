@@ -10,6 +10,8 @@ from pettingzoo import AECEnv
 from pettingzoo.utils import wrappers
 from Ship_selector import agent_selector
 
+from Ship_ord_obj import Agent
+
 alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 # env最后调用这个函数进行创建

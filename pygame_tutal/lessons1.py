@@ -1,5 +1,5 @@
 import pygame
-import sys
+import sys,time
 from pygame.locals import *
 import random
 
@@ -25,6 +25,8 @@ class Player(pygame.sprite.Sprite):
         self.pos = vec((10, 380))
         self.vel = vec(0,0)
         self.acc = vec(0,0)
+
+        self.jumping=False
     def move(self):
         # y轴添加加速度模拟重力
         self.acc = vec(0,0.5)
@@ -62,11 +64,20 @@ class Player(pygame.sprite.Sprite):
                 self.pos.y=hits[0].rect.top+1
                 self.vel.y=0
 
+       
     def jump(self):
         # 设定为仅当物体落地时才可以跳起来
         hits=pygame.sprite.spritecollide(P1,platforms,False)
         if hits:
             self.vel.y=-15
+            self.jumping=True
+
+    def cancel_jump(self):
+        if self.jumping:
+            if self.vel.y < -3:
+                self.vel.y = -3
+
+
  
 class platform(pygame.sprite.Sprite):
     def __init__(self):
@@ -90,12 +101,16 @@ class float_Platform(pygame.sprite.Sprite):
 def plat_gen():
     while len(platforms) < 7 :
         width = random.randrange(50,100)
-        p  = platform()             
-        p.rect.center = (random.randrange(0, WIDTH - width),
-                             random.randrange(-50, 0))
+        
+        p  = float_Platform()             
+        p.rect.center = (random.randrange(0, WIDTH - width),random.randrange(-50, 0))
+       
+
         platforms.add(p)
         all_sprites.add(p)
 
+
+        
 # config the shape of Windows
 HEIGHT = 450
 WIDTH = 400
@@ -105,10 +120,6 @@ FPS = 60
 
 # 图片设定帧数记录
 FramePerSec = pygame.time.Clock()
-
-# exec the configs
-displaysurface = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Ship_env")
 
 # 实例化地板、玩家对象
 PT1 = platform()
@@ -129,9 +140,17 @@ for x in range(random.randint(5, 6)):
     platforms.add(pl)
     all_sprites.add(pl)
 
+
+# exec the configs
+displaysurface = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Ship_env")
+
+
+
 while True:	
     P1.move()
     P1.update()
+    plat_gen()
     # 检测是否关闭游戏
     for event in pygame.event.get():
         if event.type == QUIT:
@@ -141,19 +160,35 @@ while True:
         if event.type == pygame.KEYDOWN:    
             if event.key == pygame.K_SPACE:
                 P1.jump()
+
+        if event.type == pygame.KEYUP:    
+            if event.key == pygame.K_SPACE:
+                P1.cancel_jump()
+
+    if P1.rect.top > HEIGHT:
+        for entity in all_sprites:
+            entity.kill()
+            time.sleep(1)
+            displaysurface.fill((255,0,0))
+            pygame.display.update()
+            time.sleep(1)
+            pygame.quit()
+            sys.exit()
+    
     # 设定背景颜色为黑色
     displaysurface.fill((0,0,0))
- 
-    if P1.rect.top <= HEIGHT / 3:
-        P1.pos.y += abs(P1.vel.y)
-    for plat in platforms:
-        plat.rect.y += abs(P1.vel.y)
-        if plat.rect.top >= HEIGHT:
-            plat.kill()
 
     # 将各精灵导入display surface中
     for entity in all_sprites:
         displaysurface.blit(entity.surf, entity.rect)
+
+    if P1.rect.top <= HEIGHT / 3:
+        P1.pos.y += abs(P1.vel.y)
+        for plat in platforms:
+            plat.rect.y += abs(P1.vel.y)
+            if plat.rect.top >= HEIGHT:
+                plat.kill()
+
 
     # 时刻更新
     pygame.display.update()
