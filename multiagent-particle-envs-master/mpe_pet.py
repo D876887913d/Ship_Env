@@ -1,6 +1,7 @@
 from pettingzoo.mpe import simple_tag_v3
 from time import sleep
-env = simple_tag_v3.env(render_mode='human')
+
+env = simple_tag_v3.env(max_cycles=100,render_mode='human')
 
 env.reset()
 for agent in env.agent_iter():
