@@ -1,0 +1,5 @@
+# requirements for windows unittest
+gym
+details
+parameterized
+paddlepaddle==1.8.5

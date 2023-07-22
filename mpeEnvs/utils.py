@@ -162,6 +162,7 @@ class Critic(nn.Module):
         q_value = self.q_out(x)
         return q_value
 
+# 一代maddpg网络
 class MADDPG:
     def __init__(self, args, agent_id):
         self.args = args
@@ -322,7 +323,7 @@ class Agent:
     def learn(self, transitions, other_agents):
         self.policy.train(transitions, other_agents)
 
-
+# 一代验证代码
 def evaluate(args,env,agents):
     evaluate_episodes=10
     evaluate_episodes_len=100
@@ -366,3 +367,129 @@ def evaluate(args,env,agents):
 
     for i in range(len(return_list[0])):
         print(sum(return_list[:,i])/evaluate_episodes)
+
+# 二代验证代码
+def run_evaluate(env,agents,eval_episodes,max_step_per_episode):
+    '''
+    params:  env表示环境
+    params:  agents为用于决策的智能体的列表
+    params:  eval_episodes为检验的轮数
+    params:  max_step_per_episode为每次环境运行的最大步长
+    '''
+    eval_episode_rewards=[]
+    eval_episode_steps=[]
+    while len(eval_episode_rewards)<eval_episodes:
+        obs_n=env.reset()
+        done=False
+        total_reward=0
+        steps=0
+        while not done and steps<max_step_per_episode:
+            steps+=1
+            action_n=[
+                agent.predict(obs) for agent,obs in zip(agents,obs_n)
+            ]
+            obs_n,reward_n,done_n,_=env.step(action_n)
+            done=all(done_n)
+            total_reward+=sum(reward_n)
+    eval_episode_rewards.append(total_reward)
+    eval_episode_steps.append(steps)
+    return eval_episode_rewards,eval_episode_steps
+
+# 二代训练代码
+def run_episode(env, agents,max_step_per_episode):
+    '''
+    breif:   进行一轮训练
+    params:  env表示环境
+    params:  agents为用于决策的智能体的列表
+    params:  max_step_per_episode为每次环境运行的最大步长
+    '''
+    obs_n = env.reset()
+    done = False
+    total_reward = 0
+    agents_reward = [0 for _ in range(env.n)]
+    steps = 0
+    while not done and steps < max_step_per_episode:
+        steps += 1
+        action_n = [agent.sample(obs) for agent, obs in zip(agents, obs_n)]
+        next_obs_n, reward_n, done_n, _ = env.step(action_n)
+        done = all(done_n)
+
+        # store experience
+        for i, agent in enumerate(agents):
+            agent.add_experience(obs_n[i], action_n[i], reward_n[i],
+                                 next_obs_n[i], done_n[i])
+
+        # compute reward of every agent
+        obs_n = next_obs_n
+        for i, reward in enumerate(reward_n):
+            total_reward += reward
+            agents_reward[i] += reward
+
+        # learn policy
+        for i, agent in enumerate(agents):
+            critic_loss = agent.learn(agents)
+
+    return total_reward, agents_reward, steps
+
+
+# def AgoodTrainExample():
+#     # 这是一个伪代码
+#     # 创建一个经验缓冲区，用于经验回放
+#     # 一个好用的训练代码~经过自己修改的，可以直接迁移到那个simpletag中，之后可以用到speaker上
+#     buffer=Buffer(args)
+
+#     train_episodes=2000000
+#     train_episodes_len=1000
+
+#     return_list=[]
+#     for episode in range(train_episodes//train_episodes_len):
+#         episode_return = [0 for i in range(args.n_players)]
+#         with tqdm(total=train_episodes_len, desc='Iteration %d' % episode) as pbar:
+#             for i_episode in range(train_episodes_len):
+#                 s = env.reset()
+#                 done = False
+#                 while not done:
+#                     # 单步步长移动对应的代码
+#                     u=[]
+#                     actions=[]
+
+#                     # 为每个智能体确定动作
+#                     with torch.no_grad():
+#                         for agent_id,agent in enumerate(agents):
+#                             action=agent.select_action(s[agent_id],args.noise_rate,args.epsilon)
+#                             u.append(action)
+#                             actions.append(action)
+
+#                     # 为每个非智能体确定动作
+#                     for i in range(args.n_agents,args.n_players):
+#                         # 非智能体仅通过随机移动改变状态
+#                         actions.append([0,np.random.rand()*2-1,0,np.random.rand()*2-1,0])
+
+#                     # 获取环境反馈
+#                     s_next,r,done,info=env.step(actions)
+
+#                     # 存放至缓冲区
+#                     buffer.store_episode(s[:args.n_agents],u,r[:args.n_agents],s_next[:args.n_agents])
+
+#                     # 状态更新
+#                     s=s_next
+
+#                     episode_return =[r[i]+episode_return[i] for i in range(args.n_players)]
+#                     # 当buffer数据的数量超过一定值后,才进行Q网络训练
+#                     if buffer.current_size>args.batch_size:
+#                         transitions=buffer.sample(args.batch_size)
+#                         for agent in agents:
+#                             other_agents=agents.copy()
+#                             other_agents.remove(agent)
+#                             # 送入网络以及训练等众多事宜都是从这个函数内部进行的
+#                             agent.learn(transitions,other_agents)
+
+#                 return_list.append(episode_return)
+#                 if (i_episode + 1) % 10 == 0:
+#                     pbar.set_postfix({
+#                         'adv_0 reward':
+#                         '%.3f' % episode_return[0],
+#                         'agent_0 reward':
+#                         '%.3f' % episode_return[3]
+#                     })
+#                 pbar.update(1)
