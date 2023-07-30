@@ -17,11 +17,31 @@ class Action:  # action of the agent
 :expand 拓展部分用于规定智能体的形状、大小、尺寸等仅用于render的信息，在此部分仅用于构造对应的基础动作等。
 '''
 class Agent:
-    def __init__(self):
+    def __init__(self, name, length, width, movable, collided, color, init_spd, max_spd, acc, max_rng, det_rng):
         super(Agent,self).__init__()
         # TODO 完善Agent基类对应的一些基本属性，便于之后进行策略更新。
         # 设定智能体的ID，便于之后进行dict映射
-        self.name=None
+        self.name = None
+        # length of the agent(m)
+        self.length = None
+        # width of the agent(m)
+        self.width = None
+        # agent can move
+        self.movable = False
+        # agent has collided with others
+        self.collided = False
+        # color
+        self.color = None
+        # initial speed(节，1节≈1.852km/h)
+        self.init_spd = None
+        # maximum speed(节，1节≈1.852km/h)
+        self.max_spd = None
+        # acceleration(m/s^2)
+        self.acc = None
+        # maximun range(km)
+        self.max_rng = None
+        # detection range(km)
+        self.det_rng = None
 
         # state
         self.state = AgentState()

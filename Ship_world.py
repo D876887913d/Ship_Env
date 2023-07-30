@@ -16,13 +16,15 @@ class World:  # multi-agent world
 
         # # physical damping
         # TODO 由于忽略阻力，假设物理阻尼为0，之后可以根据需要设定
-        # self.damping = 0
+        self.damping = 0.25
 
         # # 智能体之间不存在交流，故下面这些参数暂且全赋值为0
         # # communication channel dimensionality
         # self.dim_c = 0
 
         # TODO 根据对于碰撞力的需求，以及碰撞实际的效果，设定碰撞相关参数
+        # 碰撞之后可以调整Agent中的movable和collided
+
         # # contact response parameters
         # self.contact_force = 0
         # self.contact_margin = 0
@@ -56,12 +58,14 @@ class World:  # multi-agent world
         # gather forces applied to entities
         # TODO 将一些外界力作用进行整合，在要做的航船环境中应当修改为 角度force 以及 加速度force.
         p_force = [None] * len(self.entities)
+
         
         # 添加噪声
         p_force = self.apply_action_force(p_force)
 
         # apply environment forces
         # TODO 判断智能体是否碰撞，并保存碰撞后的力,待修改
+        # 碰撞后将movable置为false，collided置为true
         # p_force = self.apply_environment_force(p_force)
 
         # integrate physical state

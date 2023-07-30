@@ -15,6 +15,8 @@ class Scenario:
             # i.e.
             # agent.collide = False
             # agent.silent = True
+            agent.movable = True
+            agent.collided = False
         
         return world
 
