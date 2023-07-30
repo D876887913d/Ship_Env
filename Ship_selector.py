@@ -42,3 +42,15 @@ class agent_selector:
             and self._current_agent == other._current_agent
             and self.selected_agent == other.selected_agent
         )
+if __name__ == "__main__":
+    agent_order = ['agent1', 'agent2', 'agent3']
+    selector = agent_selector(agent_order)
+
+    print("Selected agent:", selector.next())
+    print("Selected agent:", selector.next())
+    print("Selected agent:", selector.next())
+    print("Is last agent?", selector.is_last())
+    print("Is first agent?", selector.is_first())
+
+    selector.reset()
+    print("Selected agent:", selector.next())
